@@ -16,30 +16,24 @@ var input = new easymidi.Input(inputName);
 
 console.log("Listening to " + inputName);
 input.on('noteon', function (msg) {
-  if (msg.note == note) {
+  if (msg.note == note && !isRecording) {
     console.log("Start")
     isRecording = true;
-    printState();
     toggleLight();
   }
 });
 
 input.on('noteoff', function (msg) {
-  if (msg.note == note) {
+  if (msg.note == note && isRecording) {
     console.log("Stop")
     isRecording = false;
-    printState();
     toggleLight();
   }
 });
 
-function printState() {
-  console.log(isRecording ? "Light on" : "Light off")
-}
 
 function toggleLight() {
   const url = haUrl + (isRecording ? lightOnId : lightOffId);
-  console.log(url)
   axios.post(url)
     .catch(function (error) {
       console.log(error);
