@@ -1,23 +1,24 @@
 
 const easymidi = require('easymidi');
-const http = require("http");
 const axios = require("axios");
-
+require('dotenv').config()
 
 // var inputs = easymidi.getInputs();
-const inputName = 'IAC Driver Bus 1';
+const inputName = process.env.INPUT_NAME;
+const lightOnId = process.env.HA_ON_ID;
+const lightOffId = process.env.HA_OFF_ID;
+const haUrl = process.env.HA_WEBHOOK_URL;
+
 const note = 25;
-let lightOn = false;
-const lightOnId = '-RrZ9uvzp9V_XirZum3y_MAlp';
-const lightOffId = '-ielOm0Gg1gKc6lCRUTyU7669';
-const haUrl = 'http://192.168.5.39:8123/api/webhook/'
+let isRecording = false;
 
 var input = new easymidi.Input(inputName);
+
 console.log("Listening to " + inputName);
 input.on('noteon', function (msg) {
   if (msg.note == note) {
-    console.log("Start recording")
-    lightOn = true;
+    console.log("Start")
+    isRecording = true;
     printState();
     toggleLight();
   }
@@ -25,19 +26,19 @@ input.on('noteon', function (msg) {
 
 input.on('noteoff', function (msg) {
   if (msg.note == note) {
-    console.log("Stop recording")
-    lightOn = false;
+    console.log("Stop")
+    isRecording = false;
     printState();
     toggleLight();
   }
 });
 
 function printState() {
-  console.log(lightOn ? "Light on" : "Light off")
+  console.log(isRecording ? "Light on" : "Light off")
 }
 
 function toggleLight() {
-  const url = haUrl + (lightOn ? lightOnId : lightOffId);
+  const url = haUrl + (isRecording ? lightOnId : lightOffId);
   console.log(url)
   axios.post(url)
     .catch(function (error) {
